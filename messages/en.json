@@ -1,0 +1,12 @@
+{
+  "Question1": {
+    "question": "Are you a student of SQU?",
+    "des": "This question is intended to confirm whether you are currently enrolled as a student at Sultan Qaboos University. Please select 'Yes' if you are actively studying at SQU, and 'No' if you are not affiliated with the university as a student.",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "Question2": {
+    "question": "Verify that you are currently enrolled as a student",
+    "des": "Verify your current enrollment status as a student by providing the necessary documentation or proof of registration. Ensure your eligibility for academic programs, discounts, or benefits."
+  }
+}
