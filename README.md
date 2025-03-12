@@ -1,17 +1,28 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+
+
+
+
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+things you required 
+-node -v 20 or plus
+
+install dependences 
+npm install or  yarn
+
+for project execuation 
+npm run dev / yarn dev 
+
+
+and make sure backend api link is updated
+
+to change backend api 
+1. file name : chatbot-api.ts 
+2. change line number 27 to "to "http://localhost:8000/career_assistant"
+
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
