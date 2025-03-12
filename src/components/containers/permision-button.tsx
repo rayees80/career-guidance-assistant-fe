@@ -8,7 +8,6 @@ import {
 } from "@/redux/features/chatbot-api";
 import Loading from "../loading/loader";
 import { useParams, useRouter } from "next/navigation";
-
 function PermisionButton() {
   const [checkPermision, { data, isLoading, isSuccess }] =
     usePermistionCheckMutation();
@@ -16,15 +15,18 @@ function PermisionButton() {
   const { locale, studentid } = useParams();
   const { push } = useRouter();
   const buttonHandler = async (value1: string) => {
-    const value = { access_choice: value1 };
+    const value = { 
+      access_choice: value1,
+      student_id: studentid,
+   // Add the student_id from URL params
+    };
     await checkPermision(value);
     // console.log(data);
   };
-
   if (isSuccess) {
-    if (data && data?.redirect === "/career_assistant/verify_id/") {
-      console.log("redirecting to qsd");
-      push(`/${locale}/service/${studentid}`);
+    if (data && data?.redirect === "career_assistant:services") {
+      console.log("redirecting to services");
+      push(`/${locale}/service/${data.student_id || 'guest'}`);
     } else {
       push(`/${locale}/service/guest`);
     }
@@ -45,5 +47,4 @@ function PermisionButton() {
     </div>
   );
 }
-
 export default PermisionButton;
