@@ -16,8 +16,13 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useChatbotPromptMutation, useSendPromptMutation } from "@/redux/features/chatbot-api";
-import { useParams } from "next/navigation";
+import {
+  useChatbotPromptMutation,
+  useGetServicesQuery,
+  useSendServicePromptMutation,
+} from "@/redux/features/chatbot-api";
+import { useParams, useRouter } from "next/navigation";
+import Loading from "../loading/loader";
 
 const options = [
   {
@@ -53,57 +58,41 @@ const FormSchema = z.object({
   }),
 });
 
-function ChatBot() {
-  const [chatHistory, setChatHistory] = useState<
-    { message: string; type: string }[]
-  >([]);
+function ServiceContainer() {
   const [
     sendPromptCall,
     { data, isSuccess: isServiceSuccess, error, isLoading },
-  ] = useSendPromptMutation();
-  const [ chatbotPrompt, { data:chatbhotprompt, error:chatbotError, isLoading:chatbotIsLoading }] = useChatbotPromptMutation();
-  const { locale, slug } = useParams();
+  ] = useSendServicePromptMutation();
+  const { push } = useRouter();
+  const [ chatbotPrompt, { data:chatbhotprompt, isSuccess:isChatbotSuccess, error:chatbotError, isLoading:chatbotIsLoading }] = useChatbotPromptMutation();
+  const { locale } = useParams();
 
-  console.log(data);
+  // console.log(data);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      prompt: "",
-    },
-  });
+  // const form = useForm<z.infer<typeof FormSchema>>({
+  //   resolver: zodResolver(FormSchema),
+  //   defaultValues: {
+  //     prompt: "",
+  //   },
+  // });
+
+  const { data: serviceData, isLoading: isServicesLoading } =
+    useGetServicesQuery();
 
   const handlePrompt = (prompt: string) => {
-    form.setValue("prompt", prompt);
-    setChatHistory([...chatHistory, { message: prompt, type: "bot" }]);
-
     const obj = { service: prompt };
     sendPromptCall(obj);
-    chatbotPrompt({ query: prompt })
-
-    setChatHistory([
-      ...chatHistory,
-      { message: prompt, type: slug === "guest" ? "Guest" : "Student" },
-    ]);
-    window.scrollTo(0, document.body.scrollHeight);
+    chatbotPrompt({ query: prompt });
+    localStorage.setItem("service", prompt);
+    // push(`/${locale}/chatbot/`);
   };
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    setChatHistory([...chatHistory, { message: data.prompt, type: "bot" }]);
 
-    const obj = { query: data.prompt };
-    chatbotPrompt(obj);
-
-    setChatHistory([
-      ...chatHistory,
-      { message: data.prompt, type: slug === "guest" ? "Guest" : "Student" },
-    ]);
-    window.scrollTo(0, document.body.scrollHeight);
-    // Reset the form
-    form.reset();
+  if(isChatbotSuccess) {
+    console.log(chatbhotprompt);
+    localStorage.setItem("response", JSON.stringify(chatbhotprompt.response));
+    push(`/${locale}/chatbot/`);
   }
-
-  console.log("isServiceSuccess", isServiceSuccess);
   return (
     <>
       <main className="max-w-7xl mx-auto px-4 pt-8 space-y-8  overflow-hidden mb-[125px]">
@@ -125,30 +114,29 @@ function ChatBot() {
         {/* Cards Grid */}
         <div className="overflow-auto pb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {options &&
-              options.map((option, index) => {
+            {isServicesLoading && <Loading />}
+            {serviceData?.services_list &&
+              serviceData?.services_list?.map((option, index) => {
                 return (
                   <Card
                     className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
                     key={index}
-                    onClick={() => handlePrompt(option.heading)}
+                    onClick={() => handlePrompt(option)}
                   >
-                    <h3 className="font-medium mb-1">{option.heading}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-medium mb-1">{option}</h3>
+                    {/* <p className="text-sm text-gray-500">
                       {option.description}
-                    </p>
+                    </p> */}
                   </Card>
                 );
               })}
           </div>
-         
         </div>
       </main>
 
       {/* Chat Input */}
-      
     </>
   );
 }
 
-export default ChatBot;
+export default ServiceContainer;

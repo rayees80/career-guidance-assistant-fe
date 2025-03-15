@@ -16,36 +16,10 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useChatbotPromptMutation, useSendPromptMutation } from "@/redux/features/chatbot-api";
+import { useChatbotPromptMutation,  } from "@/redux/features/chatbot-api";
 import { useParams } from "next/navigation";
 
-const options = [
-  {
-    heading: "Assist me in creating my CV",
-    description:
-      "Get assistance in building a professional CV that effectively highlights your skills and experience.",
-  },
-  {
-    heading: "Assist me in optimizing my Linkedin profile",
-    description:
-      "Optimize your LinkedIn profile to showcase your expertise and attract potential employers or connections.",
-  },
-  {
-    heading: "Recommend me a job",
-    description:
-      "Receive personalized job recommendations based on your skills, experience, and interests.",
-  },
-  {
-    heading: "Help me prepare for interviews",
-    description:
-      "Practice common interview questions and get tips on presenting yourself confidently.",
-  },
-  {
-    heading: "Confused about my career",
-    description:
-      "Get career guidance and explore different paths that align with your skills and interests.",
-  },
-];
+
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -57,14 +31,10 @@ function ChatBot() {
   const [chatHistory, setChatHistory] = useState<
     { message: string; type: string }[]
   >([]);
-  const [
-    sendPromptCall,
-    { data, isSuccess: isServiceSuccess, error, isLoading },
-  ] = useSendPromptMutation();
+ 
   const [ chatbotPrompt, { data:chatbhotprompt, error:chatbotError, isLoading:chatbotIsLoading }] = useChatbotPromptMutation();
   const { locale, slug } = useParams();
 
-  console.log(data);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -73,12 +43,61 @@ function ChatBot() {
     },
   });
 
+  const service  = localStorage.getItem("service");
+  const firstResponse = localStorage.getItem("response");
+
+  
+  const formatText = (text) => {
+    // Remove outer quotes if present
+    let processedText = text.startsWith('"') && text.endsWith('"') 
+      ? text.substring(1, text.length - 1) 
+      : text;
+    
+    // Replace literal "\n\n" with actual line breaks for rendering
+    processedText = processedText.replace(/\\n\\n/g, '\n\n');
+    processedText = processedText.replace(/\\n/g, '\n');
+    
+    // Split text into paragraphs
+    const paragraphs = processedText.split('\n\n');
+    
+    return (
+      <div className="text-center max-w-lg mx-auto">
+        {paragraphs.map((paragraph, index) => {
+          // Process markdown-style bold text (**text**)
+          const parts = [];
+          let remainingText = paragraph;
+          let boldMatch;
+          const boldRegex = /\*\*(.*?)\*\*/g;
+          let lastIndex = 0;
+          
+          // Create an array of text parts with bold elements
+          while ((boldMatch = boldRegex.exec(paragraph)) !== null) {
+            // Add text before the bold part
+            parts.push(paragraph.substring(lastIndex, boldMatch.index));
+            // Add the bold part (without the ** markers)
+            parts.push(<strong key={`bold-${index}-${boldMatch.index}`}>{boldMatch[1]}</strong>);
+            lastIndex = boldMatch.index + boldMatch[0].length;
+          }
+          
+          // Add any remaining text after the last bold part
+          parts.push(paragraph.substring(lastIndex));
+          
+          return (
+            <p key={index} className="text-gray-600 mb-4">
+              {parts.length > 1 ? parts : paragraph}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
+
   const handlePrompt = (prompt: string) => {
     form.setValue("prompt", prompt);
     setChatHistory([...chatHistory, { message: prompt, type: "bot" }]);
 
-    const obj = { service: prompt };
-    sendPromptCall(obj);
+ 
     chatbotPrompt({ query: prompt })
 
     setChatHistory([
@@ -103,45 +122,24 @@ function ChatBot() {
     form.reset();
   }
 
-  console.log("isServiceSuccess", isServiceSuccess);
   return (
     <>
       <main className="max-w-7xl mx-auto px-4 pt-8 space-y-8  overflow-hidden mb-[125px]">
         {/* Welcome Section */}
         <div className="text-center space-y-4">
-          <div className="w-16 h-14 bg-gray-800 rounded-2xl mx-auto flex items-center justify-center">
+          <div className="w-14 h-14 bg-gray-800 rounded-2xl mx-auto flex items-center justify-center">
             <Bot className="w-8 h-8 text-white" />
           </div>
           {/* <h2 className="text-gray-600 text-xl">Hi, Asal Design</h2> */}
           <h1 className="text-3xl font-semibold">
-            Can I help you with anything?
+            {service}
           </h1>
           <p className="text-gray-500 max-w-lg mx-auto">
-            Ready to assist you with anything you need, from answering questions
-            to providing recommendations. Let's get started!
+          {formatText(firstResponse)}
           </p>
         </div>
 
-        {/* Cards Grid */}
-        <div className="overflow-auto pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {options &&
-              options.map((option, index) => {
-                return (
-                  <Card
-                    className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                    key={index}
-                    onClick={() => handlePrompt(option.heading)}
-                  >
-                    <h3 className="font-medium mb-1">{option.heading}</h3>
-                    <p className="text-sm text-gray-500">
-                      {option.description}
-                    </p>
-                  </Card>
-                );
-              })}
-          </div>
-          <div>
+        <div>
             {chatHistory.map((chat, index) => {
               return (
                 <div
@@ -175,7 +173,7 @@ function ChatBot() {
               );
             })}
           </div>
-        </div>
+    
       </main>
 
       {/* Chat Input */}
@@ -200,14 +198,14 @@ function ChatBot() {
                           className="border-0 focus-visible:ring-0 px-0"
                           placeholder="Type your message here..."
                           {...field}
-                          disabled={isServiceSuccess ? false : true}
+                          // disabled={isServiceSuccess ? false : true}
                         />
                       </FormControl>
                     </div>
                     <div className="flex items-center  justify-center  ">
                       <Button
                         className="w-full h-full rounded-[8px] py-4"
-                        disabled={isServiceSuccess ? false : true}
+                        // disabled={isServiceSuccess ? false : true}
                       >
                         <Send className="w-5 h-5" />
                       </Button>

@@ -52,23 +52,26 @@ function Q1() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-      let obj;
-      if (attempts !== 0) {
-        obj = { student_id: values.studentId, attempts: (attempts || 0) + 1 };
-      } else {
-        obj = { student_id: values.studentId };
-      }
-      try {
-        await verifyStudentid(obj);
-        // push(`${locale}/q2`);
-      } catch (error) {
-        console.error("Error", error);
-      }
-     
+    let obj;
+    if (attempts !== 0) {
+      obj = { student_id: values.studentId, attempts: (attempts || 0) + 1 };
+    } else {
+      obj = { student_id: values.studentId };
+    }
+    try {
+      await verifyStudentid(obj);
+      // push(`${locale}/q2`);
+    } catch (error) {
+      console.error("Error", error);
+    }
   }
 
   if (isSuccess) {
     const student_id = verificationData?.student_id;
+    localStorage.setItem("student_id", student_id);
+    if (verificationData?.status) {
+      localStorage.setItem("status", verificationData.status);
+    }
     push(`/${locale}/q2/${student_id}`);
   }
 
@@ -99,7 +102,7 @@ function Q1() {
                   </Button>
                 </div>
                 <FormMessage />
-                    {isLoading && <Loading />}
+                {isLoading && <Loading />}
                 <h1 className="text-red-500">
                   {" "}
                   {ValidateVerifyStudent && error?.data?.message}

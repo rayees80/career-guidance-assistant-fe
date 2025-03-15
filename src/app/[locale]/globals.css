@@ -2,13 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-.backgroundimage {
-  background-image: url("https://xmple.com/wallpaper/gradient-blue-white-linear-1920x1080-c2-ffffff-add8e6-a-90-f-14.svg");
+body {
   height: 100vh;
-  background-size: cover;
-  background-position: center;
-  height: 100%;
+  background: rgb(255, 255, 255);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(176, 217, 231, 1) 100%
+  );
 }
+
+
 
 @layer base {
   :root {

@@ -1,5 +1,5 @@
-import ChatBot from "@/components/chatbot";
+import ServiceContainer from "@/components/containers/services";
 
 export default function ChatbotPaget() {
-  return <ChatBot />;
+  return <ServiceContainer />;
 }

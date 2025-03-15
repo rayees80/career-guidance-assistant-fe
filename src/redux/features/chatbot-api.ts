@@ -24,7 +24,7 @@ export const chatbotApi = createApi({
   reducerPath: "chatbotApi",
   baseQuery: fetchBaseQuery({
     baseUrl:
-      "https://growing-flood-give-mall.trycloudflare.com/career_assistant",
+      "https://characterization-titten-meter-sentence.trycloudflare.com/career_assistant",
     // 'http://localhost:8000/api/',
     credentials: "include",
     // prepareHeaders: (headers) => {
@@ -37,18 +37,18 @@ export const chatbotApi = createApi({
   }),
   tagTypes: ["chatbotApi"],
   endpoints: (builder) => ({
-    // getBlogPosts: builder.query<DefaultI, void>({
-    //   query: () => {
-    //     return {
-    //       url: `/student_check/`,
-    //       method: "GET",
-    //       headers: {
-    //         Accept: "application/json",
-    //         "Content-Type": "application/json",
-    //       },
-    //     };
-    //   },
-    // }),
+    getServices: builder.query<DefaultI, void>({
+      query: () => {
+        return {
+          url: `/services/`,
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
     CheckStudent: builder.mutation<DefaultI, UserResponse>({
       query: (data) => {
         return {
@@ -89,7 +89,7 @@ export const chatbotApi = createApi({
         };
       },
     }),
-    SendPrompt: builder.mutation<DefaultI, queryStudentI>({
+    SendServicePrompt: builder.mutation<DefaultI, queryStudentI>({
       query: (data) => {
         return {
           url: `/services/`,
@@ -120,8 +120,9 @@ export const chatbotApi = createApi({
 
 export const {
   useCheckStudentMutation,
-  useSendPromptMutation,
+  useSendServicePromptMutation,
   useVerifyStudentMutation,
   usePermistionCheckMutation,
   useChatbotPromptMutation,
+  useGetServicesQuery,
 } = chatbotApi;

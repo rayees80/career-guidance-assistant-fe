@@ -18,17 +18,25 @@ function PermisionButton() {
     const value = { 
       access_choice: value1,
       student_id: studentid,
-   // Add the student_id from URL params
+      status: parseInt(localStorage.getItem("svids") || "0"),
     };
     await checkPermision(value);
     // console.log(data);
   };
   if (isSuccess) {
-    if (data && data?.redirect === "career_assistant:services") {
+
+    console.log(data.student_id)
+
+    if (data?.student_id == null) {
       console.log("redirecting to services");
-      push(`/${locale}/service/${data.student_id || 'guest'}`);
-    } else {
+      localStorage.setItem("status", data?.status);
+      localStorage.setItem("student_id", data?.student_id);
       push(`/${locale}/service/guest`);
+    } else {
+      console.log("redirecting to services");
+      localStorage.setItem("status", data?.status);
+      localStorage.setItem("student_id", data?.student_id);
+      push(`/${locale}/service/${data.student_id || 'guest'}`);
     }
   }
   return (

@@ -7,6 +7,6 @@ const nextConfig = {
   images: {
     domains: ['www.squ.edu.om'],
   },
-};
+}
 
 export default withNextIntl(nextConfig);
