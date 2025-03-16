@@ -58,39 +58,59 @@ const FormSchema = z.object({
   }),
 });
 
+type queryStudentI = {
+  student_id: string | null;
+  status: number;
+  permission_granted: number;
+  language: string;
+  service?: string;
+  query?: string;
+};
+
 function ServiceContainer() {
   const [
     sendPromptCall,
     { data, isSuccess: isServiceSuccess, error, isLoading },
   ] = useSendServicePromptMutation();
   const { push } = useRouter();
-  const [ chatbotPrompt, { data:chatbhotprompt, isSuccess:isChatbotSuccess, error:chatbotError, isLoading:chatbotIsLoading }] = useChatbotPromptMutation();
+  const [
+    chatbotPrompt,
+    {
+      data: chatbhotprompt,
+      isSuccess: isChatbotSuccess,
+      error: chatbotError,
+      isLoading: chatbotIsLoading,
+    },
+  ] = useChatbotPromptMutation();
   const { locale } = useParams();
-
-  // console.log(data);
-
-  // const form = useForm<z.infer<typeof FormSchema>>({
-  //   resolver: zodResolver(FormSchema),
-  //   defaultValues: {
-  //     prompt: "",
-  //   },
-  // });
+  
 
   const { data: serviceData, isLoading: isServicesLoading } =
     useGetServicesQuery();
 
   const handlePrompt = (prompt: string) => {
-    const obj = { service: prompt };
+    const obj = {
+      service: prompt,
+      student_id: localStorage.getItem("student_id"),
+      status: parseInt(localStorage.getItem("status") || "0"),
+      permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+    };
     sendPromptCall(obj);
-    chatbotPrompt({ query: prompt });
+    chatbotPrompt({
+      query: prompt,
+      student_id: localStorage.getItem("student_id"),
+      status: parseInt(localStorage.getItem("status") || "0"),
+      permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+      language: localStorage.getItem("language") || "english",
+    });
     localStorage.setItem("service", prompt);
-    // push(`/${locale}/chatbot/`);
   };
 
-
-  if(isChatbotSuccess) {
+  if (isChatbotSuccess) {
     console.log(chatbhotprompt);
     localStorage.setItem("response", JSON.stringify(chatbhotprompt.response));
+    localStorage.setItem("sessionid", chatbhotprompt.session_id);
+    localStorage.setItem("invoked_tool", chatbhotprompt.invoked_tool);
     push(`/${locale}/chatbot/`);
   }
   return (
@@ -114,7 +134,11 @@ function ServiceContainer() {
         {/* Cards Grid */}
         <div className="overflow-auto pb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {isServicesLoading && <Loading />}
+            {isServicesLoading && (
+              <div className="flex items-center justify-center">
+                <Loading />
+              </div>
+            )}
             {serviceData?.services_list &&
               serviceData?.services_list?.map((option, index) => {
                 return (
@@ -132,8 +156,12 @@ function ServiceContainer() {
               })}
           </div>
         </div>
+        {chatbotIsLoading && (
+          <div className="flex items-center justify-center">
+            <Loading />
+          </div>
+        )}
       </main>
-
       {/* Chat Input */}
     </>
   );

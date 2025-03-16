@@ -18,7 +18,7 @@ function PermisionButton() {
     const value = { 
       access_choice: value1,
       student_id: studentid,
-      status: parseInt(localStorage.getItem("svids") || "0"),
+      status: parseInt(localStorage.getItem("status") || "0"),
     };
     await checkPermision(value);
     // console.log(data);
@@ -36,6 +36,7 @@ function PermisionButton() {
       console.log("redirecting to services");
       localStorage.setItem("status", data?.status);
       localStorage.setItem("student_id", data?.student_id);
+      localStorage.setItem("permission", data?.permission_granted);
       push(`/${locale}/service/${data.student_id || 'guest'}`);
     }
   }

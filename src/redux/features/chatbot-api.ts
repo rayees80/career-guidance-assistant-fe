@@ -24,7 +24,7 @@ export const chatbotApi = createApi({
   reducerPath: "chatbotApi",
   baseQuery: fetchBaseQuery({
     baseUrl:
-      "https://characterization-titten-meter-sentence.trycloudflare.com/career_assistant",
+      "https://career-guidance-backend-hscsc4aza8etg4g9.southeastasia-01.azurewebsites.net/career_assistant",
     // 'http://localhost:8000/api/',
     credentials: "include",
     // prepareHeaders: (headers) => {
