@@ -65,7 +65,7 @@ function ChatBot() {
     }
   }, [isChatbotResponseSuccess, chatbotResponse]);
 
-  const formatText = (text) => {
+  const formatText = (text: string | null) => {
     // Remove outer quotes if present
     let processedText =
       text && text.startsWith('"') && text.endsWith('"')
@@ -121,7 +121,7 @@ function ChatBot() {
     try {
       const obj = {
         query: data.prompt,
-        student_id: localStorage.getItem("student_id"),
+        student_id: localStorage.getItem("student_id") || "",
         status: parseInt(localStorage.getItem("status") || "0"),
         permission_granted: parseInt(localStorage.getItem("permission") || "0"),
         language: localStorage.getItem("language") || "english",

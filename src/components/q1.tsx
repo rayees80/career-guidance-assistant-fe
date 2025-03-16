@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Loading from "./loading/loader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // import Q2 from "./q2";
 import {
   // useCheckStudentMutation,
@@ -51,13 +51,25 @@ function Q1() {
     },
   });
 
+  useEffect(() => { 
+    if (isSuccess) {
+      const student_id = verificationData?.student_id;
+      localStorage.setItem("student_id", student_id);
+      if (verificationData?.status) {
+        localStorage.setItem("status", verificationData.status);
+      }
+      push(`/${locale}/q2/${student_id}`);
+    }
+  }
+  , [isSuccess, verificationData]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     let obj;
-    if (attempts !== 0) {
-      obj = { student_id: values.studentId, attempts: (attempts || 0) + 1 };
-    } else {
-      obj = { student_id: values.studentId };
-    }
+    // if (attempts !== 0) {
+    //   obj = { student_id: values.studentId, attempts: (attempts || 0) + 1 };
+    // } else {
+    //   obj = { student_id: values.studentId };
+    obj = { student_id: values.studentId } as any;
     try {
       await verifyStudentid(obj);
       // push(`${locale}/q2`);
@@ -66,14 +78,7 @@ function Q1() {
     }
   }
 
-  if (isSuccess) {
-    const student_id = verificationData?.student_id;
-    localStorage.setItem("student_id", student_id);
-    if (verificationData?.status) {
-      localStorage.setItem("status", verificationData.status);
-    }
-    push(`/${locale}/q2/${student_id}`);
-  }
+ 
 
   return (
     <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -105,7 +110,7 @@ function Q1() {
                 {isLoading && <Loading />}
                 <h1 className="text-red-500">
                   {" "}
-                  {ValidateVerifyStudent && error?.data?.message}
+                  {error && 'data' in (error as any) ? (error as any).data.message : null}
                 </h1>
               </FormItem>
             )}

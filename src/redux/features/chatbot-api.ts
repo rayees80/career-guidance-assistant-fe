@@ -15,9 +15,53 @@ interface queryStudentI {
   query: string;
 }
 
-interface checkPermistion {
+interface checkPermistionI {
+  redirect: string;
+  status?: number | null;  
+  student_id?: string | string[] | null;  
+  permission_granted?: number | null;  
+  error?: string;
+  response?: string;
+}
+
+interface checkPermistionInputI { 
+  status: number | string,
+  student_id: string | string[],
+  permission_granted?: number
+
+}
+
+
+
+interface ChatbotPromptI {
+  query: string;
+  current_service: string;
+  invoked_tool: string;
+  language: string;
+  permission_granted: number;
+  session_id: string;
+  status: number;
   student_id: string;
-  attempts: number;
+}
+
+interface ChatbotI {
+  redirect: string;
+  data?: {
+    response?: string;
+    has_section_options?: boolean;
+    section_options?: any[];
+    has_list_options?: boolean;
+    list_options?: any[];
+    has_jobs?: boolean;
+    jobs_response_text?: string;
+    jobs?: any[];
+    cv_tool_invoked?: boolean;
+    invoked_tool?: string;
+    service_type?: string;
+    session_id?: string;
+  };
+  error?: string;
+  response?: string;
 }
 
 export const chatbotApi = createApi({
@@ -37,7 +81,7 @@ export const chatbotApi = createApi({
   }),
   tagTypes: ["chatbotApi"],
   endpoints: (builder) => ({
-    getServices: builder.query<DefaultI, void>({
+    getServices: builder.query<any, void>({
       query: () => {
         return {
           url: `/services/`,
@@ -63,7 +107,7 @@ export const chatbotApi = createApi({
       },
     }),
 
-    PermistionCheck: builder.mutation<DefaultI, checkPermistion>({
+    PermistionCheck: builder.mutation<any, checkPermistionInputI>({
       query: (data) => {
         return {
           url: `/grant_permission/`,
@@ -76,7 +120,7 @@ export const chatbotApi = createApi({
         };
       },
     }),
-    VerifyStudent: builder.mutation<DefaultI, UserResponse>({
+    VerifyStudent: builder.mutation<any, UserResponse>({
       query: (data) => {
         return {
           url: `/verify_id/`,
@@ -89,7 +133,7 @@ export const chatbotApi = createApi({
         };
       },
     }),
-    SendServicePrompt: builder.mutation<DefaultI, queryStudentI>({
+    SendServicePrompt: builder.mutation<any, queryStudentI>({
       query: (data) => {
         return {
           url: `/services/`,
@@ -102,7 +146,7 @@ export const chatbotApi = createApi({
         };
       },
     }),
-    chatbotPrompt: builder.mutation<DefaultI, queryStudentI>({
+    chatbotPrompt: builder.mutation<any, ChatbotPromptI>({
       query: (data) => {
         return {
           url: `/chatbot/`,

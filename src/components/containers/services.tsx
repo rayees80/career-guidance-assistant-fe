@@ -91,18 +91,22 @@ function ServiceContainer() {
   const handlePrompt = (prompt: string) => {
     const obj = {
       service: prompt,
-      student_id: localStorage.getItem("student_id"),
+      student_id: localStorage.getItem("student_id") || "",
       status: parseInt(localStorage.getItem("status") || "0"),
       permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+      query: prompt,
     };
     sendPromptCall(obj);
     chatbotPrompt({
-      query: prompt,
-      student_id: localStorage.getItem("student_id"),
-      status: parseInt(localStorage.getItem("status") || "0"),
-      permission_granted: parseInt(localStorage.getItem("permission") || "0"),
-      language: localStorage.getItem("language") || "english",
-    });
+          query: prompt,
+          student_id: localStorage.getItem("student_id") || "",
+          status: parseInt(localStorage.getItem("status") || "0"),
+          permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+          language: localStorage.getItem("language") || "english",
+          current_service: localStorage.getItem("service") || "",
+          invoked_tool: localStorage.getItem("invoked_tool") || "",
+          session_id: localStorage.getItem("sessionid") || "",
+        });
     localStorage.setItem("service", prompt);
   };
 
@@ -127,7 +131,7 @@ function ServiceContainer() {
           </h1>
           <p className="text-gray-500 max-w-lg mx-auto">
             Ready to assist you with anything you need, from answering questions
-            to providing recommendations. Let's get started!
+            to providing recommendations. Let&apos;s get started!
           </p>
         </div>
 
@@ -140,7 +144,7 @@ function ServiceContainer() {
               </div>
             )}
             {serviceData?.services_list &&
-              serviceData?.services_list?.map((option, index) => {
+              serviceData?.services_list?.map((option: string, index: number) => {
                 return (
                   <Card
                     className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
