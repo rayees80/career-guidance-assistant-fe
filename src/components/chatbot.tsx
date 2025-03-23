@@ -24,10 +24,26 @@ const FormSchema = z.object({
   }),
 });
 
+// Define proper types for the chat messages
+interface UserMessage {
+  message: string;
+  type: "Guest" | "Student" | "user";
+}
+
+interface BotMessage {
+  message: {
+    response: string;
+    section_options?: string[];
+    list_options?: string[];
+    jobs?: string[];
+  };
+  type: "bot";
+}
+
+type ChatMessage = UserMessage | BotMessage;
+
 function ChatBot() {
-  const [chatHistory, setChatHistory] = useState<
-    { message: string; type: string }[]
-  >([]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [service, setService] = useState<string | null>(null);
   const [firstResponse, setFirstResponse] = useState<string | null>(null);
@@ -64,15 +80,15 @@ function ChatBot() {
     if (isChatbotResponseSuccess && chatbotResponse) {
       setChatHistory((prevHistory) => [
         ...prevHistory,
-        { message: chatbotResponse, type: "bot" },
+        { message: chatbotResponse, type: "bot" } as BotMessage,
       ]);
-      
+
       // Use safer scrolling mechanism
       if (typeof window !== "undefined") {
         window.requestAnimationFrame(() => {
           window.scrollTo({
             top: document.body.scrollHeight,
-            behavior: "smooth"
+            behavior: "smooth",
           });
         });
       }
@@ -94,7 +110,7 @@ function ChatBot() {
     const paragraphs = processedText.split("\n\n");
 
     return (
-      <div className="text-center max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto">
         {paragraphs.map((paragraph, index) => {
           // Process markdown-style bold text (**text**)
           const parts = [];
@@ -133,14 +149,17 @@ function ChatBot() {
       window.requestAnimationFrame(() => {
         window.scrollTo({
           top: document.body.scrollHeight,
-          behavior: "smooth"
+          behavior: "smooth",
         });
       });
     }
 
     setChatHistory((prevHistory) => [
       ...prevHistory,
-      { message: data.prompt, type: slug === "guest" ? "Guest" : "Student" },
+      { 
+        message: data.prompt, 
+        type: slug === "guest" ? "Guest" : "Student" 
+      } as UserMessage,
     ]);
 
     try {
@@ -150,7 +169,9 @@ function ChatBot() {
           query: data.prompt,
           student_id: localStorage.getItem("student_id") || "",
           status: parseInt(localStorage.getItem("status") || "0"),
-          permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+          permission_granted: parseInt(
+            localStorage.getItem("permission") || "0"
+          ),
           language: localStorage.getItem("language") || "english",
           session_id: localStorage.getItem("sessionid") || "0",
           current_service: localStorage.getItem("service") || "0",
@@ -167,10 +188,22 @@ function ChatBot() {
 
   // Render a skeleton or nothing until client-side hydration is complete
   if (!isClient) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <Loading />
-    </div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
   }
+
+  // Type guard to check if a chat message is a bot message
+  const isBotMessage = (chat: ChatMessage): chat is BotMessage => {
+    return chat.type === "bot";
+  };
+
+  // Type guard to check if a chat message is a user message
+  const isUserMessage = (chat: ChatMessage): chat is UserMessage => {
+    return chat.type !== "bot";
+  };
 
   return (
     <>
@@ -181,9 +214,21 @@ function ChatBot() {
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-semibold">{service}</h1>
-          <p className="text-gray-500 max-w-lg mx-auto">
+          {/* <p className="text-gray-500 max-w-lg mx-auto">
             {formatText(firstResponse)}
-          </p>
+          </p> */}
+          <div className="w-full">
+            <div className={`flex items-center gap-2 my-2  justify-start `}>
+              <div className={`flex items-center gap-2 p-2`}>
+                <Bot className="w-8 h-8" />
+                <p
+                  className={`p-2 bg-white text-gray-800 rounded-tr-[10px] rounded-bl-[10px]`}
+                >
+                  {formatText(firstResponse)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mb-10">
@@ -212,33 +257,35 @@ function ChatBot() {
                       : "bg-blue-500 text-white rounded-tl-[10px] rounded-br-[10px]"
                   }`}
                 >
-                  {chat.type === "bot"
-                    ? formatText(chat?.message?.response)
-                    : formatText(chat?.message)}
+                  {isBotMessage(chat)
+                    ? formatText(chat.message.response)
+                    : formatText(chat.message)}
 
-                  {chat.type === "bot" &&
-                    chat?.message?.["section_options"]?.map((option: string) => (
-                      <Button
-                        key={option}
-                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
-                        onClick={() => {
-                          form.setValue("prompt", option);
-                          form.handleSubmit(onSubmit)();
-                        }}
-                      >
-                        {option}
-                      </Button>
-                    ))}
+                  {isBotMessage(chat) &&
+                    chat.message.section_options?.map(
+                      (option: string) => (
+                        <Button
+                          key={option}
+                          className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                          onClick={() => {
+                            form.setValue("prompt", option);
+                            form.handleSubmit(onSubmit)();
+                          }}
+                        >
+                          {option}
+                        </Button>
+                      )
+                    )}
 
-                  {chat.type === "bot" &&
-                    chat?.message?.["list_options"]?.map((option: string) => (
+                  {isBotMessage(chat) &&
+                    chat.message.list_options?.map((option: string) => (
                       <Button
                         key={option}
                         className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
                         onClick={() => {
                           setChatHistory((prevHistory) => [
                             ...prevHistory,
-                            { message: option, type: "user" },
+                            { message: option, type: "user" } as UserMessage,
                           ]);
                           form.setValue("prompt", option);
                           form.handleSubmit(onSubmit)();
@@ -247,8 +294,8 @@ function ChatBot() {
                         {option}
                       </Button>
                     ))}
-                  {chat.type === "bot" &&
-                    chat?.message?.["jobs"]?.map((job: string) => (
+                  {isBotMessage(chat) &&
+                    chat.message.jobs?.map((job: string) => (
                       <Card
                         key={job}
                         className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"

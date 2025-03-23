@@ -93,6 +93,18 @@ export const chatbotApi = createApi({
         };
       },
     }),
+    downloadCV: builder.query<any, string>({
+      query: (sessionid) => {
+        return {
+          url: `/download_cv/?session_id=${sessionid}`,
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
     CheckStudent: builder.mutation<DefaultI, UserResponse>({
       query: (data) => {
         return {
@@ -169,4 +181,5 @@ export const {
   usePermistionCheckMutation,
   useChatbotPromptMutation,
   useGetServicesQuery,
+  useDownloadCVQuery,
 } = chatbotApi;
