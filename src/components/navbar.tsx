@@ -24,7 +24,6 @@ function Navbar({ locale }: { locale: string }) {
         {locale === "ar" ? (
           <Button
             onClick={() => {
-              console.log("english");
               startTransition(() => {
                 router.replace(`/en`);
               });
@@ -36,7 +35,6 @@ function Navbar({ locale }: { locale: string }) {
         ) : (
           <Button
             onClick={() => {
-              console.log("arabic");
               startTransition(() => {
                 router.replace(`/ar`);
               });

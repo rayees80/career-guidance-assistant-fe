@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 
 export default function Q1Page() {
   const t = useTranslations("Question2");
-  console.log("ttttttttttttttttttttttt", t("des"));
   return (
     <>
       <div className="relative isolate px-6 lg:px-8">

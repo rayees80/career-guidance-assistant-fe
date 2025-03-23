@@ -7,10 +7,8 @@ import { ChartSpline, Camera, Plane, Send, Bot, User2 } from "lucide-react";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
@@ -30,6 +28,10 @@ function ChatBot() {
   const [chatHistory, setChatHistory] = useState<
     { message: string; type: string }[]
   >([]);
+  const [isClient, setIsClient] = useState(false);
+  const [service, setService] = useState<string | null>(null);
+  const [firstResponse, setFirstResponse] = useState<string | null>(null);
+  const [isStudent, setIsStudent] = useState<string | null>(null);
 
   const [
     chatbotPrompt,
@@ -49,19 +51,31 @@ function ChatBot() {
     },
   });
 
-  const service = localStorage.getItem("service");
-  const firstResponse = localStorage.getItem("response");
-  const isStudent = localStorage.getItem("student_id")
-
+  // Fix hydration issues by setting client-side state after component mounts
+  useEffect(() => {
+    setIsClient(true);
+    setService(localStorage.getItem("service"));
+    setFirstResponse(localStorage.getItem("response"));
+    setIsStudent(localStorage.getItem("student_id"));
+  }, []);
 
   // Add this useEffect to handle successful responses
   useEffect(() => {
     if (isChatbotResponseSuccess && chatbotResponse) {
       setChatHistory((prevHistory) => [
         ...prevHistory,
-        { message: chatbotResponse.response, type: "bot" },
+        { message: chatbotResponse, type: "bot" },
       ]);
-      window.scrollTo(0, document.body.scrollHeight);
+      
+      // Use safer scrolling mechanism
+      if (typeof window !== "undefined") {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: "smooth"
+          });
+        });
+      }
     }
   }, [isChatbotResponseSuccess, chatbotResponse]);
 
@@ -84,15 +98,16 @@ function ChatBot() {
         {paragraphs.map((paragraph, index) => {
           // Process markdown-style bold text (**text**)
           const parts = [];
-          let remainingText = paragraph;
-          let boldMatch;
-          const boldRegex = /\*\*(.*?)\*\*/g;
           let lastIndex = 0;
+          const boldRegex = /\*\*(.*?)\*\*/g;
+          let boldMatch;
 
           // Create an array of text parts with bold elements
           while ((boldMatch = boldRegex.exec(paragraph)) !== null) {
             // Add text before the bold part
-            parts.push(paragraph.substring(lastIndex, boldMatch.index));
+            if (boldMatch.index > lastIndex) {
+              parts.push(paragraph.substring(lastIndex, boldMatch.index));
+            }
             // Add the bold part (without the ** markers)
             parts.push(
               <strong key={`bold-${index}-${boldMatch.index}`}>
@@ -103,40 +118,59 @@ function ChatBot() {
           }
 
           // Add any remaining text after the last bold part
-          parts.push(paragraph.substring(lastIndex));
+          if (lastIndex < paragraph.length) {
+            parts.push(paragraph.substring(lastIndex));
+          }
 
-          return <p key={index}>{parts.length > 1 ? parts : paragraph}</p>;
+          return <p key={index}>{parts.length > 0 ? parts : paragraph}</p>;
         })}
       </div>
     );
   };
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    window.scrollTo(0, document.body.scrollHeight);
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth"
+        });
+      });
+    }
+
     setChatHistory((prevHistory) => [
       ...prevHistory,
       { message: data.prompt, type: slug === "guest" ? "Guest" : "Student" },
     ]);
 
     try {
-      const obj = {
-        query: data.prompt,
-        student_id: localStorage.getItem("student_id") || "",
-        status: parseInt(localStorage.getItem("status") || "0"),
-        permission_granted: parseInt(localStorage.getItem("permission") || "0"),
-        language: localStorage.getItem("language") || "english",
-        session_id: localStorage.getItem("sessionid") || "0",
-        current_service: localStorage.getItem("service") || "0",
-        invoked_tool: localStorage.getItem("invoked_tool") || "0",
-      };
-      chatbotPrompt(obj);
+      // Only access localStorage when in client environment
+      if (typeof window !== "undefined") {
+        const obj = {
+          query: data.prompt,
+          student_id: localStorage.getItem("student_id") || "",
+          status: parseInt(localStorage.getItem("status") || "0"),
+          permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+          language: localStorage.getItem("language") || "english",
+          session_id: localStorage.getItem("sessionid") || "0",
+          current_service: localStorage.getItem("service") || "0",
+          invoked_tool: localStorage.getItem("invoked_tool") || "0",
+        };
+        chatbotPrompt(obj);
+      }
 
-      window.scrollTo(0, document.body.scrollHeight);
       form.reset();
     } catch (e) {
       console.log(e);
     }
   };
+
+  // Render a skeleton or nothing until client-side hydration is complete
+  if (!isClient) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <Loading />
+    </div>;
+  }
 
   return (
     <>
@@ -178,7 +212,53 @@ function ChatBot() {
                       : "bg-blue-500 text-white rounded-tl-[10px] rounded-br-[10px]"
                   }`}
                 >
-                  {formatText(chat.message)}
+                  {chat.type === "bot"
+                    ? formatText(chat?.message?.response)
+                    : formatText(chat?.message)}
+
+                  {chat.type === "bot" &&
+                    chat?.message?.["section_options"]?.map((option: string) => (
+                      <Button
+                        key={option}
+                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                        onClick={() => {
+                          form.setValue("prompt", option);
+                          form.handleSubmit(onSubmit)();
+                        }}
+                      >
+                        {option}
+                      </Button>
+                    ))}
+
+                  {chat.type === "bot" &&
+                    chat?.message?.["list_options"]?.map((option: string) => (
+                      <Button
+                        key={option}
+                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                        onClick={() => {
+                          setChatHistory((prevHistory) => [
+                            ...prevHistory,
+                            { message: option, type: "user" },
+                          ]);
+                          form.setValue("prompt", option);
+                          form.handleSubmit(onSubmit)();
+                        }}
+                      >
+                        {option}
+                      </Button>
+                    ))}
+                  {chat.type === "bot" &&
+                    chat?.message?.["jobs"]?.map((job: string) => (
+                      <Card
+                        key={job}
+                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Plane className="w-8 h-8" />
+                          <p>{job}</p>
+                        </div>
+                      </Card>
+                    ))}
                 </p>
               </div>
             </div>
@@ -221,6 +301,7 @@ function ChatBot() {
                       <Button
                         className="w-full h-full rounded-[8px] py-4"
                         disabled={chatbotIsLoading}
+                        type="submit"
                       >
                         <Send className="w-5 h-5" />
                       </Button>

@@ -54,9 +54,9 @@ function Q1() {
   useEffect(() => { 
     if (isSuccess) {
       const student_id = verificationData?.student_id;
-      localStorage.setItem("student_id", student_id);
+      window.localStorage.setItem("student_id", student_id);
       if (verificationData?.status) {
-        localStorage.setItem("status", verificationData.status);
+        window.localStorage.setItem("status", verificationData.status);
       }
       push(`/${locale}/q2/${student_id}`);
     }

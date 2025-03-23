@@ -26,12 +26,10 @@ function PermisionButton() {
   };
   if (isSuccess) {
     if (data?.student_id == null) {
-      console.log("redirecting to services");
       localStorage.setItem("status", data?.status);
       localStorage.setItem("student_id", data?.student_id);
       push(`/${locale}/service/guest`);
     } else {
-      console.log("redirecting to services");
       localStorage.setItem("status", data?.status);
       localStorage.setItem("student_id", data?.student_id);
       localStorage.setItem("permission", data?.permission_granted);

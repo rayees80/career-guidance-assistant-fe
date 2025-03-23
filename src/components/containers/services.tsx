@@ -111,9 +111,9 @@ function ServiceContainer() {
   };
 
   if (isChatbotSuccess) {
-    console.log(chatbhotprompt);
     localStorage.setItem("response", JSON.stringify(chatbhotprompt.response));
     localStorage.setItem("sessionid", chatbhotprompt.session_id);
+    document.cookie = `sessionid=${chatbhotprompt.session_id}; path=/`;
     localStorage.setItem("invoked_tool", chatbhotprompt.invoked_tool);
     push(`/${locale}/chatbot/`);
   }
