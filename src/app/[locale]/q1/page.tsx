@@ -12,9 +12,7 @@ export default function Q1Page() {
               Verify that you are currently enrolled as a student
             </h1>
             <p className="mt-8 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8">
-              Verify your current enrollment status as a student by providing
-              the necessary documentation or proof of registration. Ensure your
-              eligibility for academic programs, discounts, or benefits.
+              Verify your current enrollment status as a student by providing your valid student ID.
             </p>
             <Q1 />
           </div>

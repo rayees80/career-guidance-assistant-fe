@@ -83,7 +83,6 @@ function ServiceContainer() {
     },
   ] = useChatbotPromptMutation();
   const { locale } = useParams();
-  
 
   const { data: serviceData, isLoading: isServicesLoading } =
     useGetServicesQuery();
@@ -98,20 +97,23 @@ function ServiceContainer() {
     };
     sendPromptCall(obj);
     chatbotPrompt({
-          query: prompt,
-          student_id: localStorage.getItem("student_id") || "",
-          status: parseInt(localStorage.getItem("status") || "0"),
-          permission_granted: parseInt(localStorage.getItem("permission") || "0"),
-          language: localStorage.getItem("language") || "english",
-          current_service: localStorage.getItem("service") || "",
-          invoked_tool: localStorage.getItem("invoked_tool") || "",
-          session_id: localStorage.getItem("sessionid") || "",
-        });
+      query: prompt,
+      student_id: localStorage.getItem("student_id") || "",
+      status: parseInt(localStorage.getItem("status") || "0"),
+      permission_granted: parseInt(localStorage.getItem("permission") || "0"),
+      language: localStorage.getItem("language") || "english",
+      current_service: localStorage.getItem("service") || "",
+      invoked_tool: localStorage.getItem("invoked_tool") || "",
+      session_id: localStorage.getItem("sessionid") || "",
+    });
     localStorage.setItem("service", prompt);
   };
 
   if (isChatbotSuccess) {
     localStorage.setItem("response", JSON.stringify(chatbhotprompt.response));
+    localStorage.setItem("jobslisting", JSON.stringify(chatbhotprompt.jobs));
+    localStorage.setItem("list_options", JSON.stringify(chatbhotprompt.list_options));
+    localStorage.setItem("section_options", JSON.stringify(chatbhotprompt.section_options));
     localStorage.setItem("sessionid", chatbhotprompt.session_id);
     document.cookie = `sessionid=${chatbhotprompt.session_id}; path=/`;
     localStorage.setItem("invoked_tool", chatbhotprompt.invoked_tool);
@@ -127,7 +129,7 @@ function ServiceContainer() {
           </div>
           {/* <h2 className="text-gray-600 text-xl">Hi, Asal Design</h2> */}
           <h1 className="text-3xl font-semibold">
-            Can I help you with anything?
+            How can I assist you today?
           </h1>
           <p className="text-gray-500 max-w-lg mx-auto">
             Ready to assist you with anything you need, from answering questions
@@ -144,20 +146,22 @@ function ServiceContainer() {
               </div>
             )}
             {serviceData?.services_list &&
-              serviceData?.services_list?.map((option: string, index: number) => {
-                return (
-                  <Card
-                    className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                    key={index}
-                    onClick={() => handlePrompt(option)}
-                  >
-                    <h3 className="font-medium mb-1">{option}</h3>
-                    {/* <p className="text-sm text-gray-500">
+              serviceData?.services_list?.map(
+                (option: string, index: number) => {
+                  return (
+                    <Card
+                      className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                      key={index}
+                      onClick={() => handlePrompt(option)}
+                    >
+                      <h3 className="font-medium mb-1">{option}</h3>
+                      {/* <p className="text-sm text-gray-500">
                       {option.description}
                     </p> */}
-                  </Card>
-                );
-              })}
+                    </Card>
+                  );
+                }
+              )}
           </div>
         </div>
         {chatbotIsLoading && (

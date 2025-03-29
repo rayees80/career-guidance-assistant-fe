@@ -85,7 +85,7 @@ function Navbar({ locale }: { locale: string }) {
             )}
 
             <Button className="px-3 py-2" onClick={handleEndSession}>
-              End Session
+              Change Service
             </Button>
           </>
         )}
