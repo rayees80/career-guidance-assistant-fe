@@ -12,21 +12,19 @@ export const metadata: Metadata = {
 
 interface RootLayoutProps {
   children: React.ReactNode;
-  params: {
-    locale: string;
-  };
+ 
 }
 export default function RootLayout({
   children,
-  params: { locale },
+
 }: Readonly<RootLayoutProps>) {
   return (
-    <html lang={locale}>
+    <html>
       <body className={inter.className + " backgroundimage"}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ">
           <div className="flex-grow">
             <ReduxProvider>
-              <Navbar locale={locale} />
+              <Navbar  />
               {children}
             </ReduxProvider>
           </div>

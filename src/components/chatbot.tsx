@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useChatbotPromptMutation } from "@/redux/features/chatbot-api";
 import { useParams } from "next/navigation";
 import Loading from "./loading/loader";
+import { useRouter,usePathname } from "next/navigation";
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -59,6 +60,25 @@ function ChatBot() {
   const [selectionOption, setSelectionOption] = useState<string | null>(null);
   const [listOption, setlistOption] = useState<string | null>(null);
   const [isStudent, setIsStudent] = useState<string | null>(null);
+  const [languagechat, setLanguagechat] = useState<string | null>(null);
+
+
+  const router = useRouter();
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const handleBackButton = (event: PopStateEvent) => {
+      event.preventDefault();
+      router.push(pathname); // Stay on the same page
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, []);
 
   const [
     chatbotPrompt,
@@ -127,6 +147,7 @@ function ChatBot() {
     // Split text into paragraphs
     const paragraphs = processedText.split("\n\n");
 
+
     return (
       <div>
         {paragraphs.map((paragraph, index) => {
@@ -161,6 +182,16 @@ function ChatBot() {
       </div>
     );
   };
+
+  useEffect(() => {
+    const storedLanguage = JSON.parse(
+      localStorage.getItem("language") || '"english"'
+    );
+
+    setLanguagechat(storedLanguage);
+  }, []);
+
+
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     if (typeof window !== "undefined") {
@@ -237,7 +268,7 @@ function ChatBot() {
             I am here to help you ...
           </p>
           <div className="w-full" style={{ padding: "0px 100px" }}>
-            <div className={`flex items-center gap-2 my-2  justify-start `}>
+            <div className={`flex items-center gap-2 my-2 ${languagechat === 'english' ? "justify-start" : 'justify-end'} `}>
               <div className={``}>
                 <div className={`flex items-center gap-2 p-2`}>
                   <Bot className="w-8 h-8" /> BOT
@@ -339,7 +370,7 @@ function ChatBot() {
                               </thead>
                               <tbody>
                               {jobs.map((job: JobsI) => (
-                                <tr className="odd:bg-white even:bg-gray-100">
+                                <tr className="odd:bg-white even:bg-gray-100" key={job.title}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
                                   {job.title}
                                 </td>
@@ -388,7 +419,7 @@ function ChatBot() {
                 chat.type === "bot" ? "justify-start" : "justify-end"
               }`}
             >
-              <div className={`flex items-center gap-2 p-2`}>
+              <div className={`flex items-center gap-2 p-2 ${languagechat === "arabic" ? "flex-row-reverse" : ""} 1 `}>
                 {chat.type === "bot" ? (
                   <Bot className="w-8 h-8" />
                 ) : (

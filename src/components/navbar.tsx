@@ -7,15 +7,17 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { useDownloadCVQuery } from "@/redux/features/chatbot-api";
 
-function Navbar({ locale }: { locale: string }) {
-  const [isPending, startTransition] = useTransition();
+function Navbar() {
+  const [, startTransition] = useTransition();
   const router = useRouter();
   const [sessionid, setSessionid] = useState<string | null>(null);
   const [triggerDownload, setTriggerDownload] = useState(false);
+  const [language, setLanguage] = useState<string | null>(null);
 
-  const intervalCV = localStorage.getItem("invoked_tool");
+  const intervalCV =
+    typeof window !== "undefined" ? localStorage.getItem("invoked_tool") : null;
 
-  const { data, isLoading, isError } = useDownloadCVQuery(sessionid ?? "", {
+  const { data, isLoading } = useDownloadCVQuery(sessionid ?? "", {
     skip: !triggerDownload,
   });
 
@@ -28,12 +30,17 @@ function Navbar({ locale }: { locale: string }) {
     updateSessionId();
 
     const intervalId = setInterval(updateSessionId, 1000);
-    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const storedLanguage = JSON.parse(
+      localStorage.getItem("language") || '"english"'
+    );
+    setLanguage(storedLanguage);
   }, []);
 
   useEffect(() => {
     if (data && triggerDownload) {
-      console.log("data: " + data);
       const url = window.URL.createObjectURL(
         new Blob([data], { type: "application/pdf" })
       );
@@ -61,8 +68,13 @@ function Navbar({ locale }: { locale: string }) {
     setTriggerDownload(true);
   };
 
+  const handleChangeLanguage = () => {
+    setLanguage((prev) => (prev === "english" ? "arabic" : "english"));
+    localStorage.setItem("language", JSON.stringify(language));
+  };
+
   return (
-    <div className="flex justify-between my-8 z-10 items-center navbar">
+    <div className={`flex justify-between my-8 z-10 items-center navbar ${language === "arabic" ? "flex-row-reverse" : ""}`}>
       <Link href="/">
         <Image
           src="https://www.squ.edu.om/Portals/0/EnglishSQUlogo-100.png?ver=s1WB6WH6ixA8eme40pJSxw%3d%3d"
@@ -71,7 +83,7 @@ function Navbar({ locale }: { locale: string }) {
           height={100}
         />
       </Link>
-      <div className="relative inline-block text-left flex gap-3">
+      <div className="relative text-left flex gap-3">
         {sessionid && (
           <>
             {intervalCV === "cv_generator" && (
@@ -83,9 +95,16 @@ function Navbar({ locale }: { locale: string }) {
                 {isLoading ? "Downloading..." : "Download CV"}
               </Button>
             )}
+            <Button
+              disabled={isLoading}
+              className="px-3 py-2"
+              onClick={handleChangeLanguage}
+            >
+              {language == "english" ? "Arabic" : "English"}
+            </Button>
 
             <Button className="px-3 py-2" onClick={handleEndSession}>
-              Change Service
+              Change Session
             </Button>
           </>
         )}

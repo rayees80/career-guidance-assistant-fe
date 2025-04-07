@@ -18,9 +18,9 @@ function HeroButtons() {
 
   if (isSuccess) {
     if (data && data?.redirect === "/career_assistant/verify_id/") {
-      push(`/${locale}/q1`);
+      push(`/q1`);
     } else {
-      push(`/${locale}/service/guest`);
+      push(`/service/guest`);
     }
   }
   return (

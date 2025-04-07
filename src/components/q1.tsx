@@ -31,7 +31,7 @@ const formSchema = z.object({
 
 function Q1() {
   const { push } = useRouter();
-  const { locale } = useParams();
+
   const [attempts, setAttempts] = useState<number | undefined>(0);
 
   const [
@@ -58,7 +58,7 @@ function Q1() {
       if (verificationData?.status) {
         window.localStorage.setItem("status", verificationData.status);
       }
-      push(`/${locale}/q2/${student_id}`);
+      push(`/q2/${student_id}`);
     }
   }
   , [isSuccess, verificationData]);
@@ -72,7 +72,6 @@ function Q1() {
     obj = { student_id: values.studentId } as any;
     try {
       await verifyStudentid(obj);
-      // push(`${locale}/q2`);
     } catch (error) {
       console.error("Error", error);
     }

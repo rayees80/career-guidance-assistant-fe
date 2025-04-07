@@ -1,29 +1,31 @@
-import createMiddleware from 'next-intl/middleware';
-import { NextRequest, NextResponse } from 'next/server';
+import createMiddleware from "next-intl/middleware";
+import { NextRequest, NextResponse } from "next/server";
 
-export default async function middleware(request: NextRequest) {
-  const sessionid = request.cookies.get('sessionid')?.value;
-  
-  // Only redirect if we're not already on the chatbot page
-  if (sessionid && !request.nextUrl.pathname.includes('/chatbot')) {
-    // Get the locale from the URL or use the default
-    const locale = request.nextUrl.locale || 'en';
-    
-    // Create the new URL properly
-    const url = new URL(request.url);
-    url.pathname = `/${locale}/chatbot`;
-    
-    return NextResponse.redirect(url);
+const protectedRoutes = ["/chatbot"];
+const publicRoutes = ["/service", "/q1", "/", "/q2", "/service/*"];
+
+export default async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  const isProtectedRoute = protectedRoutes.includes(path);
+  const isPublicRoute = publicRoutes.includes(path);
+
+  const sessionid = req.cookies.get("sessionid")?.value;
+
+  if (isProtectedRoute && !sessionid) {
+    return NextResponse.redirect(new URL("/", req.nextUrl));
   }
-  
-  // Otherwise use next-intl middleware
-  return createMiddleware({
-    locales: ['en', 'ar'],
-    defaultLocale: 'en'
-  })(request);
+
+  if (
+    isPublicRoute &&
+    sessionid &&
+    !req.nextUrl.pathname.startsWith("/chatbot")
+  ) {
+    return NextResponse.redirect(new URL("/chatbot", req.nextUrl));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(ar|en)/:path*']
+  matcher: "/:path*",
 };

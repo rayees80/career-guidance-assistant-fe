@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,6 @@ function ServiceContainer() {
       isLoading: chatbotIsLoading,
     },
   ] = useChatbotPromptMutation();
-  const { locale } = useParams();
 
   const { data: serviceData, isLoading: isServicesLoading } =
     useGetServicesQuery();
@@ -117,8 +116,11 @@ function ServiceContainer() {
     localStorage.setItem("sessionid", chatbhotprompt.session_id);
     document.cookie = `sessionid=${chatbhotprompt.session_id}; path=/`;
     localStorage.setItem("invoked_tool", chatbhotprompt.invoked_tool);
-    push(`/${locale}/chatbot/`);
+    localStorage.setItem('language', JSON.stringify('english'))
+    push(`/chatbot/`);
   }
+
+
   return (
     <>
       <main className="max-w-7xl mx-auto px-4 pt-8 space-y-8  overflow-hidden mb-[125px]">

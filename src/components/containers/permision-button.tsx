@@ -28,12 +28,12 @@ function PermisionButton() {
     if (data?.student_id == null) {
       localStorage.setItem("status", data?.status);
       localStorage.setItem("student_id", data?.student_id);
-      push(`/${locale}/service/guest`);
+      push(`/service/guest`);
     } else {
       localStorage.setItem("status", data?.status);
       localStorage.setItem("student_id", data?.student_id);
       localStorage.setItem("permission", data?.permission_granted);
-      push(`/${locale}/service/${data.student_id || 'guest'}`);
+      push(`/service/${data.student_id || 'guest'}`);
     }
   }
   return (

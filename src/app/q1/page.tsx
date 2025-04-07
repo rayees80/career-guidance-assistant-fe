@@ -2,7 +2,7 @@ import Q1 from "@/components/q1";
 import { useTranslations } from "next-intl";
 
 export default function Q1Page() {
-  const t = useTranslations("Question2");
+
   return (
     <>
       <div className="relative isolate px-6 lg:px-8">

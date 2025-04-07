@@ -1,9 +1,9 @@
-import { getRequestConfig } from "next-intl/server";
+// import { getRequestConfig } from "next-intl/server";
 
-export default getRequestConfig(async ({ locale }) => {
-  // ...
+// export default getRequestConfig(async ({ locale }) => {
+//   // ...
 
-  return {
-    messages: (await import(`../messages/${locale}.json`)).default,
-  };
-});
+//   return {
+//     messages: (await import(`../messages/${locale}.json`)).default,
+//   };
+// });
