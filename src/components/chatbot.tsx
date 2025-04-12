@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useChatbotPromptMutation } from "@/redux/features/chatbot-api";
 import { useParams } from "next/navigation";
 import Loading from "./loading/loader";
-import { useRouter,usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -36,7 +36,7 @@ interface BotMessage {
     response: string;
     section_options?: string[];
     list_options?: string[];
-    jobs?: string[];
+    jobs?: string[] | JobsI[]; // Update to handle both string and object arrays
   };
   type: "bot";
 }
@@ -62,9 +62,11 @@ function ChatBot() {
   const [isStudent, setIsStudent] = useState<string | null>(null);
   const [languagechat, setLanguagechat] = useState<string | null>(null);
 
+  console.log("chatHistory", chatHistory);
+  console.log("jobs", jobs);
 
   const router = useRouter();
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleBackButton = (event: PopStateEvent) => {
@@ -134,53 +136,86 @@ function ChatBot() {
   }, [isChatbotResponseSuccess, chatbotResponse]);
 
   const formatText = (text: string | null) => {
+    if (!text) return <div></div>;
+    
     // Remove outer quotes if present
-    let processedText =
-      text && text.startsWith('"') && text.endsWith('"')
-        ? text.substring(1, text.length - 1)
-        : text || "";
-
-    // Replace literal "\n\n" with actual line breaks for rendering
-    processedText = processedText.replace(/\\n\\n/g, "\n\n");
-    processedText = processedText.replace(/\\n/g, "\n");
-
+    let processedText = text.startsWith('"') && text.endsWith('"')
+      ? text.substring(1, text.length - 1)
+      : text;
+  
+    // Replace all variants of newline characters
+    processedText = processedText
+      .replace(/\\n\\n/g, "\n\n")  // Replace literal "\n\n" with actual double line breaks
+      .replace(/\\n/g, "\n")       // Replace literal "\n" with actual line breaks
+      .replace(/\/n\/n/g, "\n\n")  // Replace "/n/n" with actual double line breaks
+      .replace(/\/n/g, "\n");      // Replace "/n" with actual line breaks
+  
     // Split text into paragraphs
     const paragraphs = processedText.split("\n\n");
-
-
+  
     return (
       <div>
         {paragraphs.map((paragraph, index) => {
-          // Process markdown-style bold text (**text**)
-          const parts = [];
-          let lastIndex = 0;
-          const boldRegex = /\*\*(.*?)\*\*/g;
-          let boldMatch;
-
-          // Create an array of text parts with bold elements
-          while ((boldMatch = boldRegex.exec(paragraph)) !== null) {
-            // Add text before the bold part
-            if (boldMatch.index > lastIndex) {
-              parts.push(paragraph.substring(lastIndex, boldMatch.index));
-            }
-            // Add the bold part (without the ** markers)
-            parts.push(
-              <strong key={`bold-${index}-${boldMatch.index}`}>
-                {boldMatch[1]}
-              </strong>
+          // Skip empty paragraphs
+          if (paragraph.trim() === '') return null;
+          
+          // Check if paragraph contains bullet points
+          if (paragraph.includes("\n- ")) {
+            // Split the paragraph into header and list items
+            const [header, ...listItems] = paragraph.split("\n- ");
+            
+            return (
+              <div key={index}>
+                {/* Render header with bold formatting */}
+                {renderTextWithBold(header, `header-${index}`)}
+                
+                {/* Render bullet points as a list */}
+                <ul className="list-disc pl-5 mt-2">
+                  {listItems.map((item, itemIndex) => (
+                    <li key={`item-${index}-${itemIndex}`}>
+                      {renderTextWithBold(item, `item-${index}-${itemIndex}`)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
-            lastIndex = boldMatch.index + boldMatch[0].length;
           }
-
-          // Add any remaining text after the last bold part
-          if (lastIndex < paragraph.length) {
-            parts.push(paragraph.substring(lastIndex));
-          }
-
-          return <p key={index}>{parts.length > 0 ? parts : paragraph}</p>;
+          
+          // For regular paragraphs without bullet points
+          return <p key={index}>{renderTextWithBold(paragraph, `para-${index}`)}</p>;
         })}
       </div>
     );
+  };
+  
+  // Helper function to process bold text
+  const renderTextWithBold = (text: string, keyPrefix: string) => {
+    const parts = [];
+    let lastIndex = 0;
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    let boldMatch;
+  
+    // Create an array of text parts with bold elements
+    while ((boldMatch = boldRegex.exec(text)) !== null) {
+      // Add text before the bold part
+      if (boldMatch.index > lastIndex) {
+        parts.push(text.substring(lastIndex, boldMatch.index));
+      }
+      // Add the bold part (without the ** markers)
+      parts.push(
+        <strong key={`${keyPrefix}-bold-${boldMatch.index}`}>
+          {boldMatch[1]}
+        </strong>
+      );
+      lastIndex = boldMatch.index + boldMatch[0].length;
+    }
+  
+    // Add any remaining text after the last bold part
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+  
+    return parts.length > 0 ? parts : text;
   };
 
   useEffect(() => {
@@ -190,8 +225,6 @@ function ChatBot() {
 
     setLanguagechat(storedLanguage);
   }, []);
-
-
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     if (typeof window !== "undefined") {
@@ -254,6 +287,16 @@ function ChatBot() {
     return chat.type !== "bot";
   };
 
+  // Helper function to check if an item is a JobsI object
+  const isJobObject = (item: any): item is JobsI => {
+    return (
+      typeof item === "object" &&
+      item !== null &&
+      "title" in item &&
+      "company" in item
+    );
+  };
+
   return (
     <>
       <main className="max-w-7xl mx-auto px-4 pt-8 space-y-8 overflow-hidden mb-[125px] ">
@@ -265,10 +308,14 @@ function ChatBot() {
           </div>
           <h1 className="text-3xl font-semibold">{service}</h1>
           <p className="text-gray-500 max-w-lg mx-auto">
-            I am here to help you ...
+            I am here to help you ...
           </p>
           <div className="w-full" style={{ padding: "0px 100px" }}>
-            <div className={`flex items-center gap-2 my-2 ${languagechat === 'english' ? "justify-start" : 'justify-end'} `}>
+            <div
+              className={`flex items-center gap-2 my-2 ${
+                languagechat === "english" ? "justify-start" : "justify-end"
+              } `}
+            >
               <div className={``}>
                 <div className={`flex items-center gap-2 p-2`}>
                   <Bot className="w-8 h-8" /> BOT
@@ -304,7 +351,7 @@ function ChatBot() {
                         JSON.parse(selectionOption)?.map((option: string) => (
                           <Button
                             key={option}
-                            className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                            className="mx-2  bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
                             onClick={() => {
                               setChatHistory((prevHistory) => [
                                 ...prevHistory,
@@ -322,87 +369,90 @@ function ChatBot() {
                         ))}
 
                       {/* show jobs in table */}
-                        {jobs && jobs.length > 0 && (
+                      {jobs && jobs.length > 0 && (
                         <div className="flex flex-col">
                           <div className="-m-1.5 overflow-x-auto">
-                          <div className="p-1.5 min-w-full inline-block align-middle">
-                            <div className="overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead>
-                              <tr>
-                                <th
-                                scope="col"
-                                className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
-                                >
-                                Title
-                                </th>
-                                <th
-                                scope="col"
-                                className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
-                                >
-                                Company
-                                </th>
-                                {/* <th
+                            <div className="p-1.5 min-w-full inline-block align-middle">
+                              <div className="overflow-hidden">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead>
+                                    <tr>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Title
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Company
+                                      </th>
+                                      {/* <th
                                 scope="col"
                                 className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase w-[100px]"
                                 >
                                 Description
                                 </th> */}
-                                <th
-                                scope="col"
-                                className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
-                                >
-                                Location
-                                </th>
-                                <th
-                                scope="col"
-                                className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
-                                >
-                                Date Posted
-                                </th>
-                                <th
-                                scope="col"
-                                className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
-                                >
-                                URL
-                                </th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {jobs.map((job: JobsI) => (
-                                <tr className="odd:bg-white even:bg-gray-100" key={job.title}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                                  {job.title}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                  {job.company}
-                                </td>
-                                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 w-[100px]">
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Location
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Date Posted
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        URL
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {jobs.map((job: JobsI) => (
+                                      <tr
+                                        className="odd:bg-white even:bg-gray-100"
+                                        key={job.title}
+                                      >
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                          {isJobObject(job) ? job.title : job}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                          {isJobObject(job) ? job.company : ""}
+                                        </td>
+                                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 w-[100px]">
                                   {job.description}
                                 </td> */}
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                  {job.location}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                  {/* {job.['date posted']} */}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                                  <a
-                                  href={job.url}
-                                  className="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-hidden focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none"
-                                  >
-                                  visit link
-                                  </a>
-                                </td>
-                                </tr>
-                              ))}
-                              </tbody>
-                            </table>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                          {isJobObject(job) ? job.location : ""}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                          {/* {job.['date posted']} */}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                          <a
+                                            href={job.url}
+                                            className="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-hidden focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none"
+                                          >
+                                            visit link
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </div>
-                          </div>
                         </div>
-                        )}
+                      )}
                     </div>
                   </div>
                 </div>
@@ -419,7 +469,11 @@ function ChatBot() {
                 chat.type === "bot" ? "justify-start" : "justify-end"
               }`}
             >
-              <div className={`flex items-center gap-2 p-2 ${languagechat === "arabic" ? "flex-row-reverse" : ""} 1 `}>
+              <div
+                className={`flex items-center gap-2 p-2 ${
+                  languagechat === "arabic" ? "flex-row-reverse" : ""
+                } 1 `}
+              >
                 {chat.type === "bot" ? (
                   <Bot className="w-8 h-8" />
                 ) : (
@@ -445,7 +499,7 @@ function ChatBot() {
                     chat.message.section_options?.map((option: string) => (
                       <Button
                         key={option}
-                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
+                        className="mx-2 bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
                         onClick={() => {
                           form.setValue("prompt", option);
                           form.handleSubmit(onSubmit)();
@@ -461,10 +515,7 @@ function ChatBot() {
                         key={option}
                         className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
                         onClick={() => {
-                          setChatHistory((prevHistory) => [
-                            ...prevHistory,
-                            { message: option, type: "user" } as UserMessage,
-                          ]);
+                          
                           form.setValue("prompt", option);
                           form.handleSubmit(onSubmit)();
                         }}
@@ -472,18 +523,101 @@ function ChatBot() {
                         {option}
                       </Button>
                     ))}
+
+                  {/* Render jobs as a list of buttons */}
                   {isBotMessage(chat) &&
-                    chat.message.jobs?.map((job: string) => (
-                      <Card
-                        key={job}
-                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Plane className="w-8 h-8" />
-                          <p>{job}</p>
+                    chat.message.jobs &&
+                    chat.message.jobs.length > 0 && (
+                      <>
+                        <div className="flex flex-col">
+                          <div className="-m-1.5 overflow-x-auto">
+                            <div className="p-1.5 min-w-full inline-block align-middle">
+                              <div className="overflow-hidden">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead>
+                                    <tr>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Title
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Company
+                                      </th>
+
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Location
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Date Posted
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        URL
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {isBotMessage(chat) &&
+                                      chat.message.jobs &&
+                                      chat.message.jobs.map((job, jobIndex) => (
+                                        <tr
+                                          className="odd:bg-white even:bg-gray-100"
+                                          key={jobIndex}
+                                        >
+                                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                            {isJobObject(job) ? job.title : job}
+                                          </td>
+                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                            {isJobObject(job)
+                                              ? job.company
+                                              : ""}
+                                          </td>
+                                          {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 w-[100px]">
+                        {job.description}
+                      </td> */}
+                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                            {isJobObject(job)
+                                              ? job.location
+                                              : ""}
+                                          </td>
+                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                            {/* {job.['date posted']} */}
+                                          </td>
+                                          <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                            <a
+                                              href={
+                                                isJobObject(job) ? job.url : ""
+                                              }
+                                              className="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-hidden focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none"
+                                            >
+                                              visit link
+                                            </a>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </Card>
-                    ))}
+                      </>
+                    )}
+
+                  {/* Fix for the jobs rendering - handle both string and object types */}
                 </p>
               </div>
             </div>

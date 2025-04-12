@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import React from "react";
 import { Button } from "../ui/button";
 import { Check, X } from "lucide-react";
@@ -9,12 +10,29 @@ import { useParams, useRouter } from "next/navigation";
 function HeroButtons() {
   const [checkStudent, { data, isLoading, isSuccess }] =
     useCheckStudentMutation();
-  const { locale } = useParams();
+  const [langua, setLangua] = React.useState<string | null>(null);
+
   const { push } = useRouter();
   const buttonHandler = async (value1: string) => {
     const value = { user_response: value1 };
     await checkStudent(value);
   };
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("language");
+    console.log("🚀 ~ useEffect ~ storedLanguage:", storedLanguage)
+    const listenStorageChange = () => {
+      if (storedLanguage === null) {
+        setLangua("english");
+      } else {
+        setLangua(JSON.parse(storedLanguage));
+      }
+    };
+    window.addEventListener("storage", listenStorageChange);
+    return () => window.removeEventListener("storage", listenStorageChange);
+  }, []);
+
+  
 
   if (isSuccess) {
     if (data && data?.redirect === "/career_assistant/verify_id/") {

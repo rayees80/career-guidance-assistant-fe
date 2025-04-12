@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { useDownloadCVQuery } from "@/redux/features/chatbot-api";
 function Navbar() {
   const [, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
   const [sessionid, setSessionid] = useState<string | null>(null);
   const [triggerDownload, setTriggerDownload] = useState(false);
   const [language, setLanguage] = useState<string | null>(null);
@@ -95,19 +96,19 @@ function Navbar() {
                 {isLoading ? "Downloading..." : "Download CV"}
               </Button>
             )}
-            <Button
-              disabled={isLoading}
-              className="px-3 py-2"
-              onClick={handleChangeLanguage}
-            >
-              {language == "english" ? "Arabic" : "English"}
-            </Button>
+            
 
             <Button className="px-3 py-2" onClick={handleEndSession}>
               Change Session
             </Button>
           </>
         )}
+      {pathname && pathname === "/" && (
+        <Button className="px-3 py-2" onClick={handleChangeLanguage}>
+           {language == "english" ? "Arabic" : "English"}
+        </Button>
+      )}
+
       </div>
     </div>
   );
