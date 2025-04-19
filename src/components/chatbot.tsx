@@ -18,6 +18,8 @@ import { useChatbotPromptMutation } from "@/redux/features/chatbot-api";
 import { useParams } from "next/navigation";
 import Loading from "./loading/loader";
 import { useRouter, usePathname } from "next/navigation";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'; 
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -36,7 +38,8 @@ interface BotMessage {
     response: string;
     section_options?: string[];
     list_options?: string[];
-    jobs?: string[] | JobsI[]; // Update to handle both string and object arrays
+    jobs?: string[] | JobsI[]; 
+    // Update to handle both string and object arrays
   };
   type: "bot";
 }
@@ -49,6 +52,7 @@ interface JobsI {
   location: string;
   url: string;
   title: string;
+  "date posted": string;
 }
 
 function ChatBot() {
@@ -150,41 +154,20 @@ function ChatBot() {
       .replace(/\/n\/n/g, "\n\n")  // Replace "/n/n" with actual double line breaks
       .replace(/\/n/g, "\n");      // Replace "/n" with actual line breaks
   
-    // Split text into paragraphs
-    const paragraphs = processedText.split("\n\n");
-  
     return (
-      <div>
-        {paragraphs.map((paragraph, index) => {
-          // Skip empty paragraphs
-          if (paragraph.trim() === '') return null;
-          
-          // Check if paragraph contains bullet points
-          if (paragraph.includes("\n- ")) {
-            // Split the paragraph into header and list items
-            const [header, ...listItems] = paragraph.split("\n- ");
-            
-            return (
-              <div key={index}>
-                {/* Render header with bold formatting */}
-                {renderTextWithBold(header, `header-${index}`)}
-                
-                {/* Render bullet points as a list */}
-                <ul className="list-disc pl-5 mt-2">
-                  {listItems.map((item, itemIndex) => (
-                    <li key={`item-${index}-${itemIndex}`}>
-                      {renderTextWithBold(item, `item-${index}-${itemIndex}`)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          }
-          
-          // For regular paragraphs without bullet points
-          return <p key={index}>{renderTextWithBold(paragraph, `para-${index}`)}</p>;
-        })}
-      </div>
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h3: ({node, ...props}) => <h3 className="text-xl font-bold mt-6 " {...props} />,
+          p: ({node, ...props}) => <p className="" {...props} />,
+          ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4" {...props} />,
+          ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-4" {...props} />,
+          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+          em: ({node, ...props}) => <strong {...props} /> // Convert emphasis to strong for your *bold* text
+        }}
+      >
+        {processedText}
+      </ReactMarkdown>
     );
   };
   
@@ -421,7 +404,7 @@ function ChatBot() {
                                         className="odd:bg-white even:bg-gray-100"
                                         key={job.title}
                                       >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 max-w-[200px]">
                                           {isJobObject(job) ? job.title : job}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
@@ -434,7 +417,7 @@ function ChatBot() {
                                           {isJobObject(job) ? job.location : ""}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                          {/* {job.['date posted']} */}
+                                          {job?.['date posted']}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                           <a
