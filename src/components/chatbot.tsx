@@ -19,7 +19,7 @@ import { useParams } from "next/navigation";
 import Loading from "./loading/loader";
 import { useRouter, usePathname } from "next/navigation";
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'; 
+import remarkGfm from 'remark-gfm';
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -38,7 +38,7 @@ interface BotMessage {
     response: string;
     section_options?: string[];
     list_options?: string[];
-    jobs?: string[] | JobsI[]; 
+    jobs?: string[] | JobsI[];
     // Update to handle both string and object arrays
   };
   type: "bot";
@@ -111,8 +111,8 @@ function ChatBot() {
     setFirstResponse(localStorage.getItem("response"));
     setJobs(
       JSON.parse(localStorage.getItem("jobslisting") || "null") as
-        | JobsI[]
-        | null
+      | JobsI[]
+      | null
     );
     setSelectionOption(localStorage.getItem("section_options"));
     setlistOption(localStorage.getItem("list_options"));
@@ -141,43 +141,43 @@ function ChatBot() {
 
   const formatText = (text: string | null) => {
     if (!text) return <div></div>;
-    
+
     // Remove outer quotes if present
     let processedText = text.startsWith('"') && text.endsWith('"')
       ? text.substring(1, text.length - 1)
       : text;
-  
+
     // Replace all variants of newline characters
     processedText = processedText
       .replace(/\\n\\n/g, "\n\n")  // Replace literal "\n\n" with actual double line breaks
       .replace(/\\n/g, "\n")       // Replace literal "\n" with actual line breaks
       .replace(/\/n\/n/g, "\n\n")  // Replace "/n/n" with actual double line breaks
       .replace(/\/n/g, "\n");      // Replace "/n" with actual line breaks
-  
+
     return (
-      <ReactMarkdown 
+      <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h3: ({node, ...props}) => <h3 className="text-xl font-bold mt-6 " {...props} />,
-          p: ({node, ...props}) => <p className="" {...props} />,
-          ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4" {...props} />,
-          ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-4" {...props} />,
-          li: ({node, ...props}) => <li className="mb-1" {...props} />,
-          em: ({node, ...props}) => <strong {...props} /> // Convert emphasis to strong for your *bold* text
+          h3: ({ node, ...props }) => <h3 className="text-xl font-bold mt-6 " {...props} />,
+          p: ({ node, ...props }) => <p className="" {...props} />,
+          ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-4" {...props} />,
+          ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-4" {...props} />,
+          li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+          em: ({ node, ...props }) => <strong {...props} /> // Convert emphasis to strong for your *bold* text
         }}
       >
         {processedText}
       </ReactMarkdown>
     );
   };
-  
+
   // Helper function to process bold text
   const renderTextWithBold = (text: string, keyPrefix: string) => {
     const parts = [];
     let lastIndex = 0;
     const boldRegex = /\*\*(.*?)\*\*/g;
     let boldMatch;
-  
+
     // Create an array of text parts with bold elements
     while ((boldMatch = boldRegex.exec(text)) !== null) {
       // Add text before the bold part
@@ -192,12 +192,12 @@ function ChatBot() {
       );
       lastIndex = boldMatch.index + boldMatch[0].length;
     }
-  
+
     // Add any remaining text after the last bold part
     if (lastIndex < text.length) {
       parts.push(text.substring(lastIndex));
     }
-  
+
     return parts.length > 0 ? parts : text;
   };
 
@@ -295,9 +295,8 @@ function ChatBot() {
           </p>
           <div className="w-full" style={{ padding: "0px 100px" }}>
             <div
-              className={`flex items-center gap-2 my-2 ${
-                languagechat === "english" ? "justify-start" : "justify-end"
-              } `}
+              className={`flex items-center gap-2 my-2 ${languagechat === "english" ? "justify-start" : "justify-end"
+                } `}
             >
               <div className={``}>
                 <div className={`flex items-center gap-2 p-2`}>
@@ -404,7 +403,7 @@ function ChatBot() {
                                         className="odd:bg-white even:bg-gray-100"
                                         key={job.title}
                                       >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 max-w-[200px]">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 max-w-[160px] text-pretty ">
                                           {isJobObject(job) ? job.title : job}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
@@ -448,14 +447,12 @@ function ChatBot() {
           {chatHistory.map((chat, index) => (
             <div
               key={index}
-              className={`flex items-center gap-2 my-2 ${
-                chat.type === "bot" ? "justify-start" : "justify-end"
-              }`}
+              className={`flex items-center gap-2 my-2 ${chat.type === "bot" ? "justify-start" : "justify-end"
+                }`}
             >
               <div
-                className={`flex items-center gap-2 p-2 ${
-                  languagechat === "arabic" ? "flex-row-reverse" : ""
-                } 1 `}
+                className={`flex items-center gap-2 p-2 ${languagechat === "arabic" ? "flex-row-reverse" : ""
+                  } 1 `}
               >
                 {chat.type === "bot" ? (
                   <Bot className="w-8 h-8" />
@@ -465,14 +462,13 @@ function ChatBot() {
                 {chat.type === "bot"
                   ? "BOT"
                   : isStudent === "null"
-                  ? "Guest"
-                  : "Student"}
+                    ? "Guest"
+                    : "Student"}
                 <p
-                  className={`p-2 ${
-                    chat.type === "bot"
+                  className={`p-2 ${chat.type === "bot"
                       ? "bg-white text-gray-800 rounded-tr-[10px] rounded-bl-[10px]"
                       : "bg-blue-500 text-white rounded-tl-[10px] rounded-br-[10px]"
-                  }`}
+                    }`}
                 >
                   {isBotMessage(chat)
                     ? formatText(chat.message.response)
@@ -498,7 +494,7 @@ function ChatBot() {
                         key={option}
                         className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col"
                         onClick={() => {
-                          
+
                           form.setValue("prompt", option);
                           form.handleSubmit(onSubmit)();
                         }}
@@ -560,7 +556,7 @@ function ChatBot() {
                                           className="odd:bg-white even:bg-gray-100"
                                           key={jobIndex}
                                         >
-                                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 max-w-[160px] text-pretty">
                                             {isJobObject(job) ? job.title : job}
                                           </td>
                                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
@@ -577,7 +573,8 @@ function ChatBot() {
                                               : ""}
                                           </td>
                                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                            {/* {job.['date posted']} */}
+                                            {
+                                              isJobObject(job) ? job?.['date posted'] : ""}
                                           </td>
                                           <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                             <a
