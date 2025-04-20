@@ -17,14 +17,14 @@ interface queryStudentI {
 
 interface checkPermistionI {
   redirect: string;
-  status?: number | null;  
-  student_id?: string | string[] | null;  
-  permission_granted?: number | null;  
+  status?: number | null;
+  student_id?: string | string[] | null;
+  permission_granted?: number | null;
   error?: string;
   response?: string;
 }
 
-interface checkPermistionInputI { 
+interface checkPermistionInputI {
   status: number | string,
   student_id: string | string[],
   permission_granted?: number
@@ -64,11 +64,12 @@ interface ChatbotI {
   response?: string;
 }
 
+
+
 export const chatbotApi = createApi({
   reducerPath: "chatbotApi",
   baseQuery: fetchBaseQuery({
-    baseUrl:
-      "https://outputs-hunt-objectives-gates.trycloudflare.com/career_assistant",
+    baseUrl: process.env.NEXT_PUBLIC_BACKOFFICE,
     // 'http://localhost:8000/api/',
     credentials: "include",
     // prepareHeaders: (headers) => {
