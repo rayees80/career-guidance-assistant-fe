@@ -119,6 +119,8 @@ function ChatBot() {
     setIsStudent(localStorage.getItem("student_id"));
   }, []);
 
+
+  console.log('listOption', listOption);
   // Add this useEffect to handle successful responses
   useEffect(() => {
     if (isChatbotResponseSuccess && chatbotResponse) {
@@ -308,24 +310,19 @@ function ChatBot() {
                       {formatText(firstResponse)}
                     </p>
                     <div>
-                      {Array.isArray(listOption) &&
-                        listOption.map((option: string) => (
+                        {listOption &&
+                        JSON.parse(listOption)?.map((option: string) => (
                           <Button
-                            key={option}
-                            className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col max-w-[250px] text-pretty"
-                            onClick={() => {
-                              setChatHistory((prevHistory) => [
-                                ...prevHistory,
-                                {
-                                  message: option,
-                                  type: "user",
-                                } as UserMessage,
-                              ]);
-                              form.setValue("prompt", option);
-                              form.handleSubmit(onSubmit)();
-                            }}
+                          key={option}
+                          className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col text-pretty"
+                          style={{ height: "auto" }}
+                          onClick={() => {
+                            
+                            form.setValue("prompt", option);
+                            form.handleSubmit(onSubmit)();
+                          }}
                           >
-                            {option}
+                          {option}
                           </Button>
                         ))}
 
@@ -333,15 +330,9 @@ function ChatBot() {
                         JSON.parse(selectionOption)?.map((option: string) => (
                           <Button
                             key={option}
-                            className="mx-2  bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col max-w-[250px] text-pretty"
+                            className="mx-2  bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col  text-pretty "
+                            style={{height: "auto"}}
                             onClick={() => {
-                              setChatHistory((prevHistory) => [
-                                ...prevHistory,
-                                {
-                                  message: option,
-                                  type: "user",
-                                } as UserMessage,
-                              ]);
                               form.setValue("prompt", option);
                               form.handleSubmit(onSubmit)();
                             }}
@@ -478,7 +469,8 @@ function ChatBot() {
                     chat.message.section_options?.map((option: string) => (
                       <Button
                         key={option}
-                        className="mx-2 bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col max-w-[250px] text-pretty"
+                        style={{height: "auto"}}
+                        className="mx-2 bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col text-pretty"
                         onClick={() => {
                           form.setValue("prompt", option);
                           form.handleSubmit(onSubmit)();
@@ -492,7 +484,8 @@ function ChatBot() {
                     chat.message.list_options?.map((option: string) => (
                       <Button
                         key={option}
-                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col max-w-[250px] text-pretty"
+                        className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col  text-pretty"
+                        style={{height: "auto"}}
                         onClick={() => {
 
                           form.setValue("prompt", option);
