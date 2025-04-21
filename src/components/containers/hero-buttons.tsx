@@ -6,8 +6,10 @@ import { Check, X } from "lucide-react";
 import { useCheckStudentMutation } from "@/redux/features/chatbot-api";
 import Loading from "../loading/loader";
 import { useParams, useRouter } from "next/navigation";
+import { useLanguage } from "@/context/language-context";
 
 function HeroButtons() {
+  const { language } = useLanguage();
   const [checkStudent, { data, isLoading, isSuccess }] =
     useCheckStudentMutation();
   const [langua, setLangua] = React.useState<string | null>(null);
@@ -43,7 +45,9 @@ function HeroButtons() {
   }
   return (
     <div>
-      <div className="mt-10 flex items-center justify-center gap-x-6">
+      <div 
+        className={`mt-10 flex items-center justify-center ${language === 'arabic' && "flex-row-reverse"} gap-x-6`}
+      >
         <Button size={"lg"} onClick={() => buttonHandler("yes")}>
           <Check color="green" />
           Yes

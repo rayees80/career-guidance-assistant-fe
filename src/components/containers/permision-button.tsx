@@ -3,18 +3,19 @@ import React from "react";
 import { Button } from "../ui/button";
 import { Check, X } from "lucide-react";
 import {
-  useCheckStudentMutation,
   usePermistionCheckMutation,
 } from "@/redux/features/chatbot-api";
 import Loading from "../loading/loader";
 import { useParams, useRouter } from "next/navigation";
+import { useLanguage } from "@/context/language-context";
 
 
 function PermisionButton() {
+  const { language } = useLanguage();
   const [checkPermision, { data, isLoading, isSuccess }] =
     usePermistionCheckMutation();
 
-  const { locale, studentid } = useParams();
+  const { studentid } = useParams();
   const { push } = useRouter();
   const buttonHandler = async (value1: string) => {
     const value = { 
@@ -38,7 +39,7 @@ function PermisionButton() {
   }
   return (
     <div>
-      <div className="mt-10 flex items-center justify-center gap-x-6">
+      <div className={`mt-10 flex items-center justify-center ${language === 'arabic' && "flex-row-reverse"} gap-x-6`}>
         <Button size={"lg"} onClick={() => buttonHandler("yes")}>
           <Check color="green" />
           Yes

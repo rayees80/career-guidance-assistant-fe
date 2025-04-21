@@ -23,6 +23,7 @@ import {
 } from "@/redux/features/chatbot-api";
 import { useParams, useRouter } from "next/navigation";
 import Loading from "../loading/loader";
+import { useLanguage } from "@/context/language-context";
 
 const options = [
   {
@@ -68,6 +69,7 @@ type queryStudentI = {
 };
 
 function ServiceContainer() {
+  const { language } = useLanguage();
   const [
     sendPromptCall,
     { data, isSuccess: isServiceSuccess, error, isLoading },
@@ -100,7 +102,7 @@ function ServiceContainer() {
       student_id: localStorage.getItem("student_id") || "",
       status: parseInt(localStorage.getItem("status") || "0"),
       permission_granted: parseInt(localStorage.getItem("permission") || "0"),
-      language: localStorage.getItem("language") || "english",
+      language: language,
       current_service: localStorage.getItem("service") || "",
       invoked_tool: localStorage.getItem("invoked_tool") || "",
       session_id: localStorage.getItem("sessionid") || "",
@@ -116,7 +118,6 @@ function ServiceContainer() {
     localStorage.setItem("sessionid", chatbhotprompt.session_id);
     document.cookie = `sessionid=${chatbhotprompt.session_id}; path=/`;
     localStorage.setItem("invoked_tool", chatbhotprompt.invoked_tool);
-    localStorage.setItem('language', JSON.stringify('english'))
     push(`/chatbot/`);
   }
 
@@ -143,7 +144,7 @@ function ServiceContainer() {
         <div className="overflow-auto pb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {isServicesLoading && (
-              <div className="flex items-center justify-center">
+              <div className={`flex items-center justify-center`}>
                 <Loading />
               </div>
             )}

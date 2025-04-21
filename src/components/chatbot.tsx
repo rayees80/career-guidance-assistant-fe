@@ -20,6 +20,7 @@ import Loading from "./loading/loader";
 import { useRouter, usePathname } from "next/navigation";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from "@/context/language-context";
 
 const FormSchema = z.object({
   prompt: z.string().min(1, {
@@ -56,6 +57,7 @@ interface JobsI {
 }
 
 function ChatBot() {
+  const { language } = useLanguage();
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [service, setService] = useState<string | null>(null);
@@ -64,7 +66,7 @@ function ChatBot() {
   const [selectionOption, setSelectionOption] = useState<string | null>(null);
   const [listOption, setlistOption] = useState<string | null>(null);
   const [isStudent, setIsStudent] = useState<string | null>(null);
-  const [languagechat, setLanguagechat] = useState<string | null>(null);
+  // const [languagechat, setLanguagechat] = useState<string | null>(null);
 
   console.log("chatHistory", chatHistory);
   console.log("jobs", jobs);
@@ -203,13 +205,13 @@ function ChatBot() {
     return parts.length > 0 ? parts : text;
   };
 
-  useEffect(() => {
-    const storedLanguage = JSON.parse(
-      localStorage.getItem("language") || '"english"'
-    );
+  // useEffect(() => {
+  //   const storedLanguage = JSON.parse(
+  //     localStorage.getItem("language") || '"english"'
+  //   );
 
-    setLanguagechat(storedLanguage);
-  }, []);
+  //   setLanguagechat(storedLanguage);
+  // }, []);
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     if (typeof window !== "undefined") {
@@ -239,7 +241,7 @@ function ChatBot() {
           permission_granted: parseInt(
             localStorage.getItem("permission") || "0"
           ),
-          language: localStorage.getItem("language") || "english",
+          language: language,
           session_id: localStorage.getItem("sessionid") || "0",
           current_service: localStorage.getItem("service") || "0",
           invoked_tool: localStorage.getItem("invoked_tool") || "0",
@@ -297,7 +299,7 @@ function ChatBot() {
           </p>
           <div className="w-full" style={{ padding: "0px 100px" }}>
             <div
-              className={`flex items-center gap-2 my-2 ${languagechat === "english" ? "justify-start" : "justify-end"
+              className={`flex items-center gap-2 my-2 ${language === 'arabic' && "flex-row-reverse"
                 } `}
             >
               <div className={``}>
@@ -310,19 +312,19 @@ function ChatBot() {
                       {formatText(firstResponse)}
                     </p>
                     <div>
-                        {listOption &&
+                      {listOption &&
                         JSON.parse(listOption)?.map((option: string) => (
                           <Button
-                          key={option}
-                          className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col text-pretty"
-                          style={{ height: "auto" }}
-                          onClick={() => {
-                            
-                            form.setValue("prompt", option);
-                            form.handleSubmit(onSubmit)();
-                          }}
+                            key={option}
+                            className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col text-pretty"
+                            style={{ height: "auto" }}
+                            onClick={() => {
+
+                              form.setValue("prompt", option);
+                              form.handleSubmit(onSubmit)();
+                            }}
                           >
-                          {option}
+                            {option}
                           </Button>
                         ))}
 
@@ -331,7 +333,7 @@ function ChatBot() {
                           <Button
                             key={option}
                             className="mx-2  bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col  text-pretty "
-                            style={{height: "auto"}}
+                            style={{ height: "auto" }}
                             onClick={() => {
                               form.setValue("prompt", option);
                               form.handleSubmit(onSubmit)();
@@ -442,8 +444,7 @@ function ChatBot() {
                 }`}
             >
               <div
-                className={`flex items-center gap-2 p-2 ${languagechat === "arabic" ? "flex-row-reverse" : ""
-                  } 1 `}
+                className={`flex items-center gap-2 p-2 ${language === "arabic" ? "flex-row-reverse" : "" } `}
               >
                 {chat.type === "bot" ? (
                   <Bot className="w-8 h-8" />
@@ -457,8 +458,8 @@ function ChatBot() {
                     : "Student"}
                 <p
                   className={`p-2 ${chat.type === "bot"
-                      ? "bg-white text-gray-800 rounded-tr-[10px] rounded-bl-[10px]"
-                      : "bg-blue-500 text-white rounded-tl-[10px] rounded-br-[10px]"
+                    ? "bg-white text-gray-800 rounded-tr-[10px] rounded-bl-[10px]"
+                    : "bg-blue-500 text-white rounded-tl-[10px] rounded-br-[10px]"
                     }`}
                 >
                   {isBotMessage(chat)
@@ -469,7 +470,7 @@ function ChatBot() {
                     chat.message.section_options?.map((option: string) => (
                       <Button
                         key={option}
-                        style={{height: "auto"}}
+                        style={{ height: "auto" }}
                         className="mx-2 bg-slate-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col text-pretty"
                         onClick={() => {
                           form.setValue("prompt", option);
@@ -485,7 +486,7 @@ function ChatBot() {
                       <Button
                         key={option}
                         className="mx-2 bg-blue-500 text-white rounded-lg px-4 py-2 mt-2 flex flex-col  text-pretty"
-                        style={{height: "auto"}}
+                        style={{ height: "auto" }}
                         onClick={() => {
 
                           form.setValue("prompt", option);
@@ -613,7 +614,7 @@ function ChatBot() {
               name="prompt"
               render={({ field }) => (
                 <FormItem>
-                  <div className="max-w-[1000px] mx-auto flex gap-2">
+                  <div className={`max-w-[1000px] mx-auto flex gap-2 ${language === "arabic" ? "flex-row-reverse" : ""}`}>
                     <div
                       className="flex-1 flex items-center gap-2 bg-white border rounded-lg px-3 py-2"
                       style={{

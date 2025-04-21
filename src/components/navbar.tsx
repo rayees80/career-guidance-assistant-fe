@@ -6,14 +6,19 @@ import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { useDownloadCVQuery } from "@/redux/features/chatbot-api";
+import { useLanguage } from "@/context/language-context";
+import LanguageToggleButton from "@/context/language-button";
+
 
 function Navbar() {
-  const [, startTransition] = useTransition();
+  const { language } = useLanguage();
+
+  const startTransition = useTransition()[1];
   const router = useRouter();
   const pathname = usePathname();
   const [sessionid, setSessionid] = useState<string | null>(null);
   const [triggerDownload, setTriggerDownload] = useState(false);
-  const [language, setLanguage] = useState<string | null>(null);
+  // const [language, setLanguage] = useState<string | null>(null);
 
   const intervalCV =
     typeof window !== "undefined" ? localStorage.getItem("invoked_tool") : null;
@@ -33,12 +38,12 @@ function Navbar() {
     const intervalId = setInterval(updateSessionId, 1000);
   }, []);
 
-  useEffect(() => {
-    const storedLanguage = JSON.parse(
-      localStorage.getItem("language") || '"english"'
-    );
-    setLanguage(storedLanguage);
-  }, []);
+  // useEffect(() => {
+  //   const storedLanguage = JSON.parse(
+  //     localStorage.getItem("language") || '"english"'
+  //   );
+  //   setLanguage(storedLanguage);
+  // }, []);
 
   useEffect(() => {
     if (data && triggerDownload) {
@@ -69,10 +74,10 @@ function Navbar() {
     setTriggerDownload(true);
   };
 
-  const handleChangeLanguage = () => {
-    setLanguage((prev) => (prev === "english" ? "arabic" : "english"));
-    localStorage.setItem("language", JSON.stringify(language));
-  };
+  // const handleChangeLanguage = () => {
+  //   setLanguage((prev) => (prev === "english" ? "arabic" : "english"));
+  //   localStorage.setItem("language", JSON.stringify(language));
+  // };
 
   return (
     <div className={`flex justify-between my-8 z-10 items-center navbar ${language === "arabic" ? "flex-row-reverse" : ""}`}>
@@ -87,7 +92,7 @@ function Navbar() {
       <div className="relative text-left flex gap-3">
         {sessionid && (
           <>
-            {/* {intervalCV === "cv_generator" && (
+            {intervalCV === "cv_generator" && (
               <Button
                 className="px-3 py-2"
                 onClick={handleDownloadCV}
@@ -95,19 +100,17 @@ function Navbar() {
               >
                 {isLoading ? "Downloading..." : "Download CV"}
               </Button>
-            )} */}
-            
+            )}
+
 
             <Button className="px-3 py-2" onClick={handleEndSession}>
               Change Session
             </Button>
           </>
         )}
-      {/* {pathname && pathname === "/" && (
-        <Button className="px-3 py-2" onClick={handleChangeLanguage}>
-           {language == "english" ? "Arabic" : "English"}
-        </Button>
-      )} */}
+        {pathname && pathname === "/" && (
+          <LanguageToggleButton />
+        )}
 
       </div>
     </div>
