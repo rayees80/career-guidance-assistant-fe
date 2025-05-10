@@ -92,7 +92,7 @@ function Navbar() {
       <div className="relative text-left flex gap-3">
         {sessionid && (
           <>
-            {intervalCV === "cv_generator" && (
+            {/* {intervalCV === "cv_generator" && (
               <Button
                 className="px-3 py-2"
                 onClick={handleDownloadCV}
@@ -100,7 +100,7 @@ function Navbar() {
               >
                 {isLoading ? "Downloading..." : "Download CV"}
               </Button>
-            )}
+            )} */}
 
 
             <Button className="px-3 py-2" onClick={handleEndSession}>

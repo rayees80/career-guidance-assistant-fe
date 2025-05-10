@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { useLanguage } from './language-context';
 import React from 'react';
 
@@ -14,9 +15,12 @@ export default function LanguageToggleButton() {
   return (
     <div>
       <p>Current Language: {language}</p>
-      <button onClick={toggleLanguage}>
-        Switch to {language === 'english' ? 'Arabic' : 'English'}
-      </button>
+      <Button
+        className="px-3 py-2"
+        onClick={toggleLanguage}
+      >
+        {language === 'english' ? 'Arabic' : 'English'}
+      </Button>
     </div>
   );
 }
